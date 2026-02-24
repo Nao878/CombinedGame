@@ -33,6 +33,9 @@ public class SceneSetupTool : Editor
         SetupItemPickups();
         SetupUI();
 
+        // ゲーム仕様書の自動生成・更新
+        GameDesignDocGenerator.Generate();
+
         // シーンを保存
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         Debug.Log("[SceneSetup] ゾンビサバイバル シーンのセットアップが完了しました！");
