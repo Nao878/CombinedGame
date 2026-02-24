@@ -4,22 +4,21 @@ namespace ZombieSurvival
 {
     /// <summary>
     /// プレイヤーの移動とマウス方向への回転を制御
-    /// 見下ろし型（Top-Down）視点用
+    /// 2Dトップダウン視点（XY平面移動 + Z軸回転）
     /// </summary>
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerController : MonoBehaviour
     {
         [Header("移動設定")]
         [SerializeField] private float moveSpeed = 7f;
-        [SerializeField] private float gravity = -9.81f;
 
-        private CharacterController controller;
-        private Vector3 velocity;
+        private Rigidbody2D rb;
         private Camera mainCamera;
+        private Vector2 moveInput;
 
         private void Awake()
         {
-            controller = GetComponent<CharacterController>();
+            rb = GetComponent<Rigidbody2D>();
         }
 
         private void Start()
@@ -29,50 +28,35 @@ namespace ZombieSurvival
 
         private void Update()
         {
-            HandleMovement();
+            // 入力取得
+            float h = Input.GetAxisRaw("Horizontal");
+            float v = Input.GetAxisRaw("Vertical");
+            moveInput = new Vector2(h, v).normalized;
+
+            // マウス照準（Z軸回転）
             HandleRotation();
         }
 
-        /// <summary>
-        /// WASD/矢印キーでXZ平面上を移動
-        /// </summary>
-        private void HandleMovement()
+        private void FixedUpdate()
         {
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
-
-            Vector3 moveDir = new Vector3(h, 0f, v).normalized;
-            controller.Move(moveDir * moveSpeed * Time.deltaTime);
-
-            // 重力
-            if (controller.isGrounded && velocity.y < 0f)
-            {
-                velocity.y = -2f;
-            }
-            velocity.y += gravity * Time.deltaTime;
-            controller.Move(velocity * Time.deltaTime);
+            // 物理移動
+            rb.linearVelocity = moveInput * moveSpeed;
         }
 
         /// <summary>
-        /// マウスカーソルのワールド座標に向かって回転
+        /// マウスカーソル方向にZ軸回転（2D）
         /// </summary>
         private void HandleRotation()
         {
             if (mainCamera == null) return;
 
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 direction = (Vector2)mouseWorldPos - (Vector2)transform.position;
 
-            if (groundPlane.Raycast(ray, out float distance))
+            if (direction.sqrMagnitude > 0.01f)
             {
-                Vector3 hitPoint = ray.GetPoint(distance);
-                Vector3 lookDir = hitPoint - transform.position;
-                lookDir.y = 0f;
-
-                if (lookDir.sqrMagnitude > 0.01f)
-                {
-                    transform.rotation = Quaternion.LookRotation(lookDir);
-                }
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
             }
         }
     }

@@ -3,10 +3,10 @@ using UnityEngine;
 namespace ZombieSurvival
 {
     /// <summary>
-    /// フィールド上に配置されるアイテムオブジェクト
+    /// フィールド上に配置されるアイテムオブジェクト（2D版）
     /// プレイヤーが近づくと自動取得される
     /// </summary>
-    [RequireComponent(typeof(Collider))]
+    [RequireComponent(typeof(Collider2D))]
     public class ItemPickup : MonoBehaviour
     {
         [Header("アイテム設定")]
@@ -14,7 +14,7 @@ namespace ZombieSurvival
 
         [Header("ビジュアル")]
         [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobHeight = 0.3f;
+        [SerializeField] private float bobHeight = 0.15f;
         [SerializeField] private float rotateSpeed = 90f;
 
         private Vector3 startPos;
@@ -27,25 +27,25 @@ namespace ZombieSurvival
             ItemData data = ItemDatabase.GetByName(itemName);
             if (data != null)
             {
-                Renderer rend = GetComponent<Renderer>();
-                if (rend != null)
+                SpriteRenderer sr = GetComponent<SpriteRenderer>();
+                if (sr != null)
                 {
-                    rend.material.color = data.displayColor;
+                    sr.color = data.displayColor;
                 }
             }
         }
 
         private void Update()
         {
-            // 浮遊アニメーション
+            // 浮遊アニメーション（Y軸で上下）
             float newY = startPos.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
             transform.position = new Vector3(startPos.x, newY, startPos.z);
 
-            // 回転アニメーション
-            transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
+            // Z軸回転アニメーション
+            transform.Rotate(0f, 0f, rotateSpeed * Time.deltaTime);
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter2D(Collider2D other)
         {
             if (other.CompareTag("Player"))
             {

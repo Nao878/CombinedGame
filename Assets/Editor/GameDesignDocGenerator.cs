@@ -58,7 +58,9 @@ public static class GameDesignDocGenerator
         sb.AppendLine("| 項目 | 内容 |");
         sb.AppendLine("|------|------|");
         sb.AppendLine("| ジャンル | 見下ろし型アクションサバイバル |");
-        sb.AppendLine("| 視点 | トップダウン（カメラ Y=18, X=65°） |");
+        sb.AppendLine("| 視点 | 2D トップダウン（Orthographic） |");
+        sb.AppendLine("| 描画方式 | SpriteRenderer ベース（2D） |");
+        sb.AppendLine("| 物理エンジン | Physics2D（Rigidbody2D / Collider2D） |");
         sb.AppendLine("| コアループ | 探索 → 素材拾い → クラフト → 戦闘 |");
         sb.AppendLine();
     }
@@ -128,13 +130,13 @@ public static class GameDesignDocGenerator
         // スクリプトの存在をチェックして一覧を生成
         var features = new (string script, string label, string detail)[]
         {
-            ("Assets/Scripts/Player/PlayerController.cs",   "プレイヤー制御",       "WASD 移動 + マウス照準回転"),
-            ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "見下ろし視点でプレイヤーを追従"),
+            ("Assets/Scripts/Player/PlayerController.cs",   "プレイヤー制御",       "WASD XY平面移動 + マウスZ軸回転（2D）"),
+            ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "Orthographic 2D カメラで追従"),
             ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "アイテム追加 / 消費 / イベント通知"),
-            ("Assets/Scripts/Pickup/ItemPickup.cs",         "アイテムピックアップ", "トリガー接触で自動取得 + 浮遊演出"),
+            ("Assets/Scripts/Pickup/ItemPickup.cs",         "アイテムピックアップ", "Collider2D トリガーで自動取得 + 浮遊演出"),
             ("Assets/Scripts/Crafting/CraftingManager.cs",  "クラフト（合成）",     "C キーでレシピ判定 → 素材消費 → 武器生成"),
-            ("Assets/Scripts/Weapon/WeaponController.cs",   "武器発射",             "左クリックで弾を生成 + クールダウン"),
-            ("Assets/Scripts/Weapon/Bullet.cs",             "弾",                   "直進 + 時間消滅 + 衝突消滅"),
+            ("Assets/Scripts/Weapon/WeaponController.cs",   "武器発射",             "SpriteRenderer 弾を2D生成 + クールダウン"),
+            ("Assets/Scripts/Weapon/Bullet.cs",             "弾",                   "Rigidbody2D 直進 + 時間消滅 + 2D衝突消滅"),
             ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "インベントリ / 操作説明 / レシピ / メッセージ表示"),
             ("Assets/Scripts/Data/ItemData.cs",             "アイテムデータ定義",   "ItemData クラス + ItemType enum"),
             ("Assets/Scripts/Data/ItemDatabase.cs",         "アイテム DB",          "全アイテム + 全レシピの静的定義"),

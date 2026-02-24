@@ -3,15 +3,15 @@ using UnityEngine;
 namespace ZombieSurvival
 {
     /// <summary>
-    /// プレイヤーを追従するカメラ制御
-    /// 見下ろし視点を維持しながらプレイヤーに追従
+    /// プレイヤーを追従するカメラ制御（2D版）
+    /// Orthographicカメラで見下ろし視点を維持
     /// </summary>
     public class CameraFollow : MonoBehaviour
     {
         [Header("追従設定")]
         [SerializeField] private Transform target;
-        [SerializeField] private Vector3 offset = new Vector3(0f, 18f, -8f);
         [SerializeField] private float smoothSpeed = 8f;
+        [SerializeField] private float cameraZ = -10f;
 
         private void LateUpdate()
         {
@@ -29,7 +29,7 @@ namespace ZombieSurvival
                 }
             }
 
-            Vector3 desiredPos = target.position + offset;
+            Vector3 desiredPos = new Vector3(target.position.x, target.position.y, cameraZ);
             Vector3 smoothedPos = Vector3.Lerp(transform.position, desiredPos, smoothSpeed * Time.deltaTime);
             transform.position = smoothedPos;
         }

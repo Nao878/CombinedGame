@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using ZombieSurvival;
 
 /// <summary>
-/// ゾンビサバイバル ゲームのシーン一括セットアップツール
+/// ゾンビサバイバル ゲームのシーン一括セットアップツール（2D版）
 /// メニュー: Tools > Setup Zombie Survival
 /// </summary>
 public class SceneSetupTool : Editor
@@ -13,37 +13,29 @@ public class SceneSetupTool : Editor
     [MenuItem("Tools/Setup Zombie Survival")]
     public static void SetupScene()
     {
-        // 既存オブジェクトのクリーンアップ確認
         if (!EditorUtility.DisplayDialog(
-            "Zombie Survival Setup",
-            "シーンをセットアップします。既存のGameObjectは維持されます。\n実行しますか？",
+            "Zombie Survival Setup (2D)",
+            "2Dシーンをセットアップします。\n実行しますか？",
             "実行", "キャンセル"))
         {
             return;
         }
 
-        // 既存の重複を削除
         CleanupExisting();
 
-        // 各オブジェクトの生成
-        SetupGround();
-        SetupLighting();
         SetupCamera();
-        GameObject player = SetupPlayer();
+        SetupGround();
+        SetupPlayer();
         SetupItemPickups();
         SetupUI();
 
         // ゲーム仕様書の自動生成・更新
         GameDesignDocGenerator.Generate();
 
-        // シーンを保存
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        Debug.Log("[SceneSetup] ゾンビサバイバル シーンのセットアップが完了しました！");
+        Debug.Log("[SceneSetup] 2D ゾンビサバイバル シーンのセットアップが完了しました！");
     }
 
-    /// <summary>
-    /// 既存のセットアップオブジェクトを削除
-    /// </summary>
     private static void CleanupExisting()
     {
         string[] objectNames = {
@@ -51,214 +43,153 @@ public class SceneSetupTool : Editor
             "GameCanvas", "GameManagers",
             "Pickup_ScrapMetal_1", "Pickup_ScrapMetal_2",
             "Pickup_Gunpowder_1", "Pickup_Gunpowder_2",
-            "Pickup_Wood_1", "Pickup_Nail_1"
+            "Pickup_Wood_1", "Pickup_Nail_1",
+            "EventSystem"
         };
 
         foreach (var name in objectNames)
         {
             var obj = GameObject.Find(name);
-            if (obj != null)
-            {
-                DestroyImmediate(obj);
-            }
+            if (obj != null) DestroyImmediate(obj);
         }
     }
 
-    /// <summary>
-    /// 地面の作成
-    /// </summary>
-    private static void SetupGround()
-    {
-        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Ground";
-        ground.transform.position = Vector3.zero;
-        ground.transform.localScale = new Vector3(5f, 1f, 5f); // 50x50の地面
-
-        // 地面の色を暗い緑に
-        Renderer rend = ground.GetComponent<Renderer>();
-        if (rend != null)
-        {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = new Color(0.2f, 0.35f, 0.15f);
-            rend.material = mat;
-        }
-
-        // 地面のコライダーにタグ設定なし（デフォルト）
-    }
-
-    /// <summary>
-    /// 照明の設定
-    /// </summary>
-    private static void SetupLighting()
-    {
-        GameObject light = new GameObject("Directional Light");
-        Light lightComp = light.AddComponent<Light>();
-        lightComp.type = LightType.Directional;
-        lightComp.color = new Color(1f, 0.95f, 0.84f);
-        lightComp.intensity = 1.2f;
-        lightComp.shadows = LightShadows.Soft;
-        light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
-    }
-
-    /// <summary>
-    /// カメラの設定（見下ろし視点）
-    /// </summary>
+    // ==============================
+    //  カメラ（Orthographic 2D）
+    // ==============================
     private static void SetupCamera()
     {
         GameObject camObj = new GameObject("Main Camera");
         camObj.tag = "MainCamera";
+
         Camera cam = camObj.AddComponent<Camera>();
+        cam.orthographic = true;
+        cam.orthographicSize = 8f;
         cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
-        cam.fieldOfView = 60f;
+        cam.backgroundColor = new Color(0.08f, 0.08f, 0.12f);
+        cam.nearClipPlane = 0.1f;
+        cam.farClipPlane = 100f;
 
-        // 見下ろし位置
-        camObj.transform.position = new Vector3(0f, 18f, -8f);
-        camObj.transform.rotation = Quaternion.Euler(65f, 0f, 0f);
+        camObj.transform.position = new Vector3(0f, 0f, -10f);
+        camObj.transform.rotation = Quaternion.identity;
 
-        // AudioListener
         camObj.AddComponent<AudioListener>();
-
-        // カメラ追従スクリプト
         camObj.AddComponent<CameraFollow>();
     }
 
-    /// <summary>
-    /// プレイヤーの作成
-    /// </summary>
-    private static GameObject SetupPlayer()
+    // ==============================
+    //  地面（2Dスプライト）
+    // ==============================
+    private static void SetupGround()
     {
-        // プレイヤー本体（Cube）
-        GameObject player = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        player.name = "Player";
+        GameObject ground = new GameObject("Ground");
+        ground.transform.position = Vector3.zero;
+
+        SpriteRenderer sr = ground.AddComponent<SpriteRenderer>();
+        sr.sprite = GetSquareSprite();
+        sr.color = new Color(0.18f, 0.30f, 0.12f);
+        sr.sortingOrder = -10;
+
+        // 地面を大きく
+        ground.transform.localScale = new Vector3(40f, 40f, 1f);
+    }
+
+    // ==============================
+    //  プレイヤー（2Dスプライト）
+    // ==============================
+    private static void SetupPlayer()
+    {
+        // --- プレイヤー本体 ---
+        GameObject player = new GameObject("Player");
         player.tag = "Player";
-        player.transform.position = new Vector3(0f, 0.5f, 0f);
-        player.layer = LayerMask.NameToLayer("Default");
+        player.transform.position = Vector3.zero;
 
-        // プレイヤーの色
-        Renderer rend = player.GetComponent<Renderer>();
-        if (rend != null)
-        {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = new Color(0.2f, 0.6f, 1f); // 青色
-            rend.material = mat;
-        }
+        SpriteRenderer sr = player.AddComponent<SpriteRenderer>();
+        sr.sprite = GetSquareSprite();
+        sr.color = new Color(0.2f, 0.6f, 1f); // 青
+        sr.sortingOrder = 10;
+        player.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
 
-        // 銃口の目印（小さなCube）
-        GameObject muzzle = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        muzzle.name = "MuzzlePoint";
-        muzzle.transform.SetParent(player.transform);
-        muzzle.transform.localPosition = new Vector3(0f, 0f, 0.7f);
-        muzzle.transform.localScale = new Vector3(0.15f, 0.15f, 0.3f);
-        Renderer muzzleRend = muzzle.GetComponent<Renderer>();
-        if (muzzleRend != null)
-        {
-            Material muzzleMat = new Material(Shader.Find("Standard"));
-            muzzleMat.color = Color.red;
-            muzzleRend.material = muzzleMat;
-        }
-        // 銃口のコライダーを無効化
-        var muzzleCol = muzzle.GetComponent<Collider>();
-        if (muzzleCol != null) DestroyImmediate(muzzleCol);
+        // Rigidbody2D
+        Rigidbody2D rb = player.AddComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-        // CharacterController
-        CharacterController cc = player.AddComponent<CharacterController>();
-        cc.height = 1f;
-        cc.radius = 0.4f;
-        cc.center = Vector3.zero;
+        // BoxCollider2D
+        BoxCollider2D col = player.AddComponent<BoxCollider2D>();
+        col.size = Vector2.one;
 
-        // スクリプトの追加
+        // スクリプト
         player.AddComponent<PlayerController>();
         WeaponController weapon = player.AddComponent<WeaponController>();
 
-        // firePointの設定（Serializeされているが、エディターで手動で設定が必要）
-        // → リフレクションで設定
-        var firePointField = typeof(WeaponController).GetField("firePoint",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (firePointField != null)
-        {
-            firePointField.SetValue(weapon, muzzle.transform);
-        }
+        // --- 銃口マーカー（子オブジェクト）---
+        GameObject muzzle = new GameObject("MuzzlePoint");
+        muzzle.transform.SetParent(player.transform);
+        muzzle.transform.localPosition = new Vector3(0f, 0.6f, 0f); // transform.up方向
 
-        // GameManagersオブジェクト（シングルトン群）
+        SpriteRenderer muzzleSR = muzzle.AddComponent<SpriteRenderer>();
+        muzzleSR.sprite = GetSquareSprite();
+        muzzleSR.color = Color.red;
+        muzzleSR.sortingOrder = 11;
+        muzzle.transform.localScale = new Vector3(0.2f, 0.3f, 1f);
+
+        // firePoint をリフレクションで設定
+        SetPrivateField(weapon, "firePoint", muzzle.transform);
+
+        // --- GameManagers ---
         GameObject managers = new GameObject("GameManagers");
         managers.AddComponent<InventoryManager>();
         managers.AddComponent<CraftingManager>();
-
-        return player;
     }
 
-    /// <summary>
-    /// フィールドアイテムの配置
-    /// </summary>
+    // ==============================
+    //  フィールドアイテム
+    // ==============================
     private static void SetupItemPickups()
     {
-        // 鉄くず x2
-        CreatePickup("Pickup_ScrapMetal_1", "鉄くず", new Vector3(5f, 0.5f, 5f), PrimitiveType.Sphere);
-        CreatePickup("Pickup_ScrapMetal_2", "鉄くず", new Vector3(-8f, 0.5f, 3f), PrimitiveType.Sphere);
-
-        // 火薬 x2
-        CreatePickup("Pickup_Gunpowder_1", "火薬", new Vector3(-5f, 0.5f, 8f), PrimitiveType.Sphere);
-        CreatePickup("Pickup_Gunpowder_2", "火薬", new Vector3(7f, 0.5f, -6f), PrimitiveType.Sphere);
-
-        // 木材 x1
-        CreatePickup("Pickup_Wood_1", "木材", new Vector3(-3f, 0.5f, -7f), PrimitiveType.Cube);
-
-        // 釘 x1
-        CreatePickup("Pickup_Nail_1", "釘", new Vector3(10f, 0.5f, -2f), PrimitiveType.Cylinder);
+        CreatePickup("Pickup_ScrapMetal_1", "鉄くず", new Vector3(4f, 4f, 0f));
+        CreatePickup("Pickup_ScrapMetal_2", "鉄くず", new Vector3(-6f, 2f, 0f));
+        CreatePickup("Pickup_Gunpowder_1", "火薬",   new Vector3(-4f, 6f, 0f));
+        CreatePickup("Pickup_Gunpowder_2", "火薬",   new Vector3(5f, -4f, 0f));
+        CreatePickup("Pickup_Wood_1",      "木材",   new Vector3(-2f, -5f, 0f));
+        CreatePickup("Pickup_Nail_1",      "釘",     new Vector3(7f, -1f, 0f));
     }
 
-    /// <summary>
-    /// アイテムピックアップオブジェクトの生成
-    /// </summary>
-    private static void CreatePickup(string objName, string itemName, Vector3 position, PrimitiveType shape)
+    private static void CreatePickup(string objName, string itemName, Vector3 position)
     {
-        GameObject pickup = GameObject.CreatePrimitive(shape);
-        pickup.name = objName;
+        GameObject pickup = new GameObject(objName);
         pickup.transform.position = position;
-        pickup.transform.localScale = Vector3.one * 0.5f;
+        pickup.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
 
-        // トリガーコライダーに変更
-        Collider col = pickup.GetComponent<Collider>();
-        if (col != null)
-        {
-            DestroyImmediate(col);
-        }
-
-        // 大きめのトリガーコライダーを追加（取得範囲）
-        SphereCollider trigger = pickup.AddComponent<SphereCollider>();
-        trigger.isTrigger = true;
-        trigger.radius = 2f;
+        // SpriteRenderer
+        SpriteRenderer sr = pickup.AddComponent<SpriteRenderer>();
+        sr.sprite = GetCircleSprite();
+        sr.sortingOrder = 5;
 
         // 色設定
         ItemData data = ItemDatabase.GetByName(itemName);
         if (data != null)
         {
-            Renderer rend = pickup.GetComponent<Renderer>();
-            if (rend != null)
-            {
-                Material mat = new Material(Shader.Find("Standard"));
-                mat.color = data.displayColor;
-
-                // Emissionを有効にして光らせる
-                mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", data.displayColor * 0.5f);
-
-                rend.material = mat;
-            }
+            sr.color = data.displayColor;
         }
 
-        // ItemPickupスクリプト追加
+        // CircleCollider2D（トリガー）
+        CircleCollider2D trigger = pickup.AddComponent<CircleCollider2D>();
+        trigger.isTrigger = true;
+        trigger.radius = 2f;
+
+        // ItemPickup スクリプト
         ItemPickup itemPickup = pickup.AddComponent<ItemPickup>();
         itemPickup.SetItemName(itemName);
     }
 
-    /// <summary>
-    /// UI Canvasの作成
-    /// </summary>
+    // ==============================
+    //  UI
+    // ==============================
     private static void SetupUI()
     {
-        // Canvas
         GameObject canvasObj = new GameObject("GameCanvas");
         Canvas canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -269,61 +200,50 @@ public class SceneSetupTool : Editor
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // === インベントリテキスト（左上）===
+        // インベントリ（左上）
         GameObject invTextObj = CreateTextUI(canvasObj, "InventoryText",
             "--- インベントリ ---\n(空)",
-            new Vector2(20f, -20f),
-            new Vector2(300f, 200f),
-            TextAnchor.UpperLeft);
-        invTextObj.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 1f);
-        invTextObj.GetComponent<RectTransform>().anchorMax = new Vector2(0f, 1f);
-        invTextObj.GetComponent<RectTransform>().pivot = new Vector2(0f, 1f);
+            new Vector2(20f, -20f), new Vector2(300f, 200f), TextAnchor.UpperLeft);
+        SetAnchors(invTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
 
-        // === 操作説明テキスト（右下）===
+        // 操作説明（右下）
         GameObject ctrlTextObj = CreateTextUI(canvasObj, "ControlsText",
             "--- 操作方法 ---\nWASD : 移動\nマウス : 照準\n左クリック : 射撃\nC : クラフト",
-            new Vector2(-20f, 20f),
-            new Vector2(280f, 160f),
-            TextAnchor.LowerRight);
-        ctrlTextObj.GetComponent<RectTransform>().anchorMin = new Vector2(1f, 0f);
-        ctrlTextObj.GetComponent<RectTransform>().anchorMax = new Vector2(1f, 0f);
-        ctrlTextObj.GetComponent<RectTransform>().pivot = new Vector2(1f, 0f);
+            new Vector2(-20f, 20f), new Vector2(280f, 160f), TextAnchor.LowerRight);
+        SetAnchors(ctrlTextObj, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
 
-        // === メッセージテキスト（中央上）===
-        GameObject msgTextObj = CreateTextUI(canvasObj, "MessageText",
-            "",
-            new Vector2(0f, -60f),
-            new Vector2(600f, 50f),
-            TextAnchor.MiddleCenter);
-        msgTextObj.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1f);
-        msgTextObj.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1f);
-        msgTextObj.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1f);
+        // メッセージ（中央上）
+        GameObject msgTextObj = CreateTextUI(canvasObj, "MessageText", "",
+            new Vector2(0f, -60f), new Vector2(600f, 50f), TextAnchor.MiddleCenter);
+        SetAnchors(msgTextObj, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
         msgTextObj.GetComponent<Text>().fontSize = 22;
         msgTextObj.GetComponent<Text>().color = Color.yellow;
 
-        // === レシピテキスト（左下）===
-        GameObject recipeTextObj = CreateTextUI(canvasObj, "RecipeText",
-            "",
-            new Vector2(20f, 20f),
-            new Vector2(350f, 120f),
-            TextAnchor.LowerLeft);
-        recipeTextObj.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 0f);
-        recipeTextObj.GetComponent<RectTransform>().anchorMax = new Vector2(0f, 0f);
-        recipeTextObj.GetComponent<RectTransform>().pivot = new Vector2(0f, 0f);
+        // レシピ（左下）
+        GameObject recipeTextObj = CreateTextUI(canvasObj, "RecipeText", "",
+            new Vector2(20f, 20f), new Vector2(350f, 120f), TextAnchor.LowerLeft);
+        SetAnchors(recipeTextObj, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
 
-        // === GameHUDスクリプト追加 ===
+        // GameHUD
         GameHUD hud = canvasObj.AddComponent<GameHUD>();
-
-        // リフレクションでテキスト参照を設定
         SetPrivateField(hud, "inventoryText", invTextObj.GetComponent<Text>());
         SetPrivateField(hud, "controlsText", ctrlTextObj.GetComponent<Text>());
         SetPrivateField(hud, "messageText", msgTextObj.GetComponent<Text>());
         SetPrivateField(hud, "recipeText", recipeTextObj.GetComponent<Text>());
     }
 
-    /// <summary>
-    /// テキストUIオブジェクトの生成ヘルパー
-    /// </summary>
+    // ==============================
+    //  ヘルパー
+    // ==============================
+
+    private static void SetAnchors(GameObject obj, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+    {
+        RectTransform rt = obj.GetComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.pivot = pivot;
+    }
+
     private static GameObject CreateTextUI(GameObject parent, string name, string content,
         Vector2 position, Vector2 size, TextAnchor alignment)
     {
@@ -343,7 +263,7 @@ public class SceneSetupTool : Editor
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
 
-        // 背景（半透明黒）の追加
+        // 半透明黒背景
         GameObject bgObj = new GameObject(name + "_BG");
         bgObj.transform.SetParent(obj.transform, false);
         bgObj.transform.SetAsFirstSibling();
@@ -361,16 +281,41 @@ public class SceneSetupTool : Editor
         return obj;
     }
 
-    /// <summary>
-    /// プライベートフィールドにリフレクションで値を設定
-    /// </summary>
     private static void SetPrivateField(object target, string fieldName, object value)
     {
         var field = target.GetType().GetField(fieldName,
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (field != null)
+        if (field != null) field.SetValue(target, value);
+    }
+
+    // ==============================
+    //  スプライト取得
+    // ==============================
+
+    private static Sprite GetSquareSprite()
+    {
+        return FindBuiltinSprite("UISprite", "Square");
+    }
+
+    private static Sprite GetCircleSprite()
+    {
+        return FindBuiltinSprite("Knob", "Circle");
+    }
+
+    /// <summary>
+    /// Unity内蔵スプライトを名前で検索
+    /// </summary>
+    private static Sprite FindBuiltinSprite(string primaryName, string fallbackName)
+    {
+        Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+        Sprite fallback = null;
+
+        foreach (var s in allSprites)
         {
-            field.SetValue(target, value);
+            if (s.name == primaryName) return s;
+            if (s.name == fallbackName) fallback = s;
         }
+
+        return fallback;
     }
 }
