@@ -7,8 +7,8 @@ namespace ZombieSurvival
     /// </summary>
     public enum ItemType
     {
-        Material,  // 素材
-        Weapon     // 武器
+        Material,  // 漢字パーツ（素材）
+        Weapon     // 漢字武器
     }
 
     /// <summary>
@@ -22,12 +22,18 @@ namespace ZombieSurvival
         public string description;
         public Color displayColor = Color.white;
 
-        public ItemData(string name, ItemType type, string desc, Color color)
+        /// <summary>
+        /// フィールド上で表示する文字（漢字1文字）
+        /// </summary>
+        public string displayCharacter;
+
+        public ItemData(string name, ItemType type, string desc, Color color, string character = "")
         {
             itemName = name;
             itemType = type;
             description = desc;
             displayColor = color;
+            displayCharacter = string.IsNullOrEmpty(character) ? name : character;
         }
     }
 }

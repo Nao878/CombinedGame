@@ -52,16 +52,18 @@ public static class GameDesignDocGenerator
     {
         sb.AppendLine("## 1. 世界観");
         sb.AppendLine();
-        sb.AppendLine("文明崩壊後の世界。街にはゾンビが徘徊し、生存者は廃墟に散らばる素材を拾い集め、");
-        sb.AppendLine("即席の武器をクラフトして生き延びなければならない。");
+        sb.AppendLine("言葉が力を失った世界。文明は崩壊し、ゾンビが闊歩する廃墟で、");
+        sb.AppendLine("ただ一人の生存者は『漢字を組み合わせて万物を具現化する』能力に覚醒した。");
+        sb.AppendLine("フィールドに散らばる漢字パーツを拾い集め、合成して武器を創り出し、生き延びろ。");
         sb.AppendLine();
         sb.AppendLine("| 項目 | 内容 |");
         sb.AppendLine("|------|------|");
         sb.AppendLine("| ジャンル | 見下ろし型アクションサバイバル |");
         sb.AppendLine("| 視点 | 2D トップダウン（Orthographic） |");
-        sb.AppendLine("| 描画方式 | SpriteRenderer ベース（2D） |");
+        sb.AppendLine("| テーマ | 漢字合成による武器創造 |");
+        sb.AppendLine("| 描画方式 | SpriteRenderer + TextMesh（2D） |");
         sb.AppendLine("| 物理エンジン | Physics2D（Rigidbody2D / Collider2D） |");
-        sb.AppendLine("| コアループ | 探索 → 素材拾い → クラフト → 戦闘 |");
+        sb.AppendLine("| コアループ | 探索 → 漢字パーツ収集 → 漢字合成 → 戦闘 |");
         sb.AppendLine();
     }
 
@@ -73,9 +75,9 @@ public static class GameDesignDocGenerator
         sb.AppendLine("|------------|-----------|");
         sb.AppendLine("| W / A / S / D | 移動（上左下右） |");
         sb.AppendLine("| マウス移動 | プレイヤーの向き（照準） |");
-        sb.AppendLine("| 左クリック | 武器で射撃 / 攻撃 |");
-        sb.AppendLine("| C | クラフト実行 |");
-        sb.AppendLine("| 接近（トリガー） | アイテム自動取得 |");
+        sb.AppendLine("| 左クリック | 漢字武器で射撃 / 攻撃 |");
+        sb.AppendLine("| C | 漢字合成の実行 |");
+        sb.AppendLine("| 接近（トリガー） | 漢字パーツ自動取得 |");
         sb.AppendLine();
     }
 
@@ -132,14 +134,14 @@ public static class GameDesignDocGenerator
         {
             ("Assets/Scripts/Player/PlayerController.cs",   "プレイヤー制御",       "WASD XY平面移動 + マウスZ軸回転（2D）"),
             ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "Orthographic 2D カメラで追従"),
-            ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "アイテム追加 / 消費 / イベント通知"),
-            ("Assets/Scripts/Pickup/ItemPickup.cs",         "アイテムピックアップ", "Collider2D トリガーで自動取得 + 浮遊演出"),
-            ("Assets/Scripts/Crafting/CraftingManager.cs",  "クラフト（合成）",     "C キーでレシピ判定 → 素材消費 → 武器生成"),
-            ("Assets/Scripts/Weapon/WeaponController.cs",   "武器発射",             "SpriteRenderer 弾を2D生成 + クールダウン"),
+            ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "漢字パーツの追加 / 消費 / イベント通知"),
+            ("Assets/Scripts/Pickup/ItemPickup.cs",         "漢字パーツ拾得",       "TextMesh表示 + Collider2D トリガー自動取得"),
+            ("Assets/Scripts/Crafting/CraftingManager.cs",  "漢字合成",             "C キーで漢字レシピ判定 → パーツ消費 → 漢字武器生成"),
+            ("Assets/Scripts/Weapon/WeaponController.cs",   "漢字武器発射",         "漢字武器所持時に弾を2D発射"),
             ("Assets/Scripts/Weapon/Bullet.cs",             "弾",                   "Rigidbody2D 直進 + 時間消滅 + 2D衝突消滅"),
-            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "インベントリ / 操作説明 / レシピ / メッセージ表示"),
-            ("Assets/Scripts/Data/ItemData.cs",             "アイテムデータ定義",   "ItemData クラス + ItemType enum"),
-            ("Assets/Scripts/Data/ItemDatabase.cs",         "アイテム DB",          "全アイテム + 全レシピの静的定義"),
+            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "所持漢字 / 操作説明 / レシピ / メッセージ表示"),
+            ("Assets/Scripts/Data/ItemData.cs",             "漢字データ定義",       "ItemData + displayCharacter フィールド"),
+            ("Assets/Scripts/Data/ItemDatabase.cs",         "漢字 DB",              "漢字パーツ + 漢字武器 + 合成レシピの静的定義"),
         };
 
         sb.AppendLine("| 状態 | 機能 | 詳細 |");

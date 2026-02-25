@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using ZombieSurvival;
 
 /// <summary>
-/// ゾンビサバイバル ゲームのシーン一括セットアップツール（2D版）
+/// ゾンビサバイバル（漢字合成版）シーン一括セットアップツール（2D）
 /// メニュー: Tools > Setup Zombie Survival
 /// </summary>
 public class SceneSetupTool : Editor
@@ -14,8 +14,8 @@ public class SceneSetupTool : Editor
     public static void SetupScene()
     {
         if (!EditorUtility.DisplayDialog(
-            "Zombie Survival Setup (2D)",
-            "2Dシーンをセットアップします。\n実行しますか？",
+            "Zombie Survival Setup (2D 漢字合成)",
+            "2Dシーンをセットアップします（漢字合成版）。\n実行しますか？",
             "実行", "キャンセル"))
         {
             return;
@@ -26,27 +26,28 @@ public class SceneSetupTool : Editor
         SetupCamera();
         SetupGround();
         SetupPlayer();
-        SetupItemPickups();
+        SetupKanjiPickups();
         SetupUI();
 
-        // ゲーム仕様書の自動生成・更新
         GameDesignDocGenerator.Generate();
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        Debug.Log("[SceneSetup] 2D ゾンビサバイバル シーンのセットアップが完了しました！");
+        Debug.Log("[SceneSetup] 2D 漢字合成ゾンビサバイバル シーンのセットアップが完了しました！");
     }
 
     private static void CleanupExisting()
     {
+        // 動的名称のピックアップも含めてすべて削除
+        var pickups = GameObject.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
+        foreach (var p in pickups)
+        {
+            DestroyImmediate(p.gameObject);
+        }
+
         string[] objectNames = {
             "Player", "Ground", "Main Camera", "Directional Light",
-            "GameCanvas", "GameManagers",
-            "Pickup_ScrapMetal_1", "Pickup_ScrapMetal_2",
-            "Pickup_Gunpowder_1", "Pickup_Gunpowder_2",
-            "Pickup_Wood_1", "Pickup_Nail_1",
-            "EventSystem"
+            "GameCanvas", "GameManagers", "EventSystem"
         };
-
         foreach (var name in objectNames)
         {
             var obj = GameObject.Find(name);
@@ -55,7 +56,7 @@ public class SceneSetupTool : Editor
     }
 
     // ==============================
-    //  カメラ（Orthographic 2D）
+    //  カメラ
     // ==============================
     private static void SetupCamera()
     {
@@ -66,49 +67,49 @@ public class SceneSetupTool : Editor
         cam.orthographic = true;
         cam.orthographicSize = 8f;
         cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(0.08f, 0.08f, 0.12f);
-        cam.nearClipPlane = 0.1f;
-        cam.farClipPlane = 100f;
+        cam.backgroundColor = new Color(0.06f, 0.06f, 0.10f);
 
         camObj.transform.position = new Vector3(0f, 0f, -10f);
-        camObj.transform.rotation = Quaternion.identity;
-
         camObj.AddComponent<AudioListener>();
         camObj.AddComponent<CameraFollow>();
     }
 
     // ==============================
-    //  地面（2Dスプライト）
+    //  地面
     // ==============================
     private static void SetupGround()
     {
         GameObject ground = new GameObject("Ground");
-        ground.transform.position = Vector3.zero;
-
         SpriteRenderer sr = ground.AddComponent<SpriteRenderer>();
-        sr.sprite = GetSquareSprite();
-        sr.color = new Color(0.18f, 0.30f, 0.12f);
+        sr.sprite = FindBuiltinSprite("UISprite", "Square");
+        sr.color = new Color(0.12f, 0.14f, 0.10f);
         sr.sortingOrder = -10;
-
-        // 地面を大きく
         ground.transform.localScale = new Vector3(40f, 40f, 1f);
     }
 
     // ==============================
-    //  プレイヤー（2Dスプライト）
+    //  プレイヤー
     // ==============================
     private static void SetupPlayer()
     {
-        // --- プレイヤー本体 ---
         GameObject player = new GameObject("Player");
         player.tag = "Player";
-        player.transform.position = Vector3.zero;
 
-        SpriteRenderer sr = player.AddComponent<SpriteRenderer>();
-        sr.sprite = GetSquareSprite();
-        sr.color = new Color(0.2f, 0.6f, 1f); // 青
-        sr.sortingOrder = 10;
-        player.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+        // 「人」の漢字で表示（TextMesh）
+        TextMesh tm = player.AddComponent<TextMesh>();
+        tm.text = "人";
+        tm.fontSize = 64;
+        tm.characterSize = 0.2f;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.color = new Color(0.3f, 0.7f, 1f); // 青色
+        tm.fontStyle = FontStyle.Bold;
+
+        MeshRenderer mr = player.GetComponent<MeshRenderer>();
+        if (mr != null)
+        {
+            mr.sortingOrder = 10;
+        }
 
         // Rigidbody2D
         Rigidbody2D rb = player.AddComponent<Rigidbody2D>();
@@ -118,71 +119,101 @@ public class SceneSetupTool : Editor
 
         // BoxCollider2D
         BoxCollider2D col = player.AddComponent<BoxCollider2D>();
-        col.size = Vector2.one;
+        col.size = new Vector2(0.8f, 0.8f);
 
         // スクリプト
         player.AddComponent<PlayerController>();
         WeaponController weapon = player.AddComponent<WeaponController>();
 
-        // --- 銃口マーカー（子オブジェクト）---
+        // 銃口（発射位置）
         GameObject muzzle = new GameObject("MuzzlePoint");
         muzzle.transform.SetParent(player.transform);
-        muzzle.transform.localPosition = new Vector3(0f, 0.6f, 0f); // transform.up方向
+        muzzle.transform.localPosition = new Vector3(0f, 0.8f, 0f);
 
-        SpriteRenderer muzzleSR = muzzle.AddComponent<SpriteRenderer>();
-        muzzleSR.sprite = GetSquareSprite();
-        muzzleSR.color = Color.red;
-        muzzleSR.sortingOrder = 11;
-        muzzle.transform.localScale = new Vector3(0.2f, 0.3f, 1f);
-
-        // firePoint をリフレクションで設定
         SetPrivateField(weapon, "firePoint", muzzle.transform);
 
-        // --- GameManagers ---
+        // Managers
         GameObject managers = new GameObject("GameManagers");
         managers.AddComponent<InventoryManager>();
         managers.AddComponent<CraftingManager>();
     }
 
     // ==============================
-    //  フィールドアイテム
+    //  漢字パーツピックアップ
     // ==============================
-    private static void SetupItemPickups()
+    private static void SetupKanjiPickups()
     {
-        CreatePickup("Pickup_ScrapMetal_1", "鉄くず", new Vector3(4f, 4f, 0f));
-        CreatePickup("Pickup_ScrapMetal_2", "鉄くず", new Vector3(-6f, 2f, 0f));
-        CreatePickup("Pickup_Gunpowder_1", "火薬",   new Vector3(-4f, 6f, 0f));
-        CreatePickup("Pickup_Gunpowder_2", "火薬",   new Vector3(5f, -4f, 0f));
-        CreatePickup("Pickup_Wood_1",      "木材",   new Vector3(-2f, -5f, 0f));
-        CreatePickup("Pickup_Nail_1",      "釘",     new Vector3(7f, -1f, 0f));
+        // 銃 = 金 + 充
+        CreateKanjiPickup("金", new Vector3(4f, 4f, 0f));
+        CreateKanjiPickup("充", new Vector3(-5f, 6f, 0f));
+
+        // 板 = 木 + 反
+        CreateKanjiPickup("木", new Vector3(-6f, -3f, 0f));
+        CreateKanjiPickup("反", new Vector3(6f, -5f, 0f));
+
+        // 剣 = 金 + 刃
+        CreateKanjiPickup("金", new Vector3(-3f, 2f, 0f));
+        CreateKanjiPickup("刃", new Vector3(7f, 1f, 0f));
+
+        // 爆 = 火 + 薬
+        CreateKanjiPickup("火", new Vector3(2f, -6f, 0f));
+        CreateKanjiPickup("薬", new Vector3(-7f, -1f, 0f));
     }
 
-    private static void CreatePickup(string objName, string itemName, Vector3 position)
+    /// <summary>
+    /// 漢字パーツのピックアップオブジェクトを生成
+    /// TextMesh で漢字1文字を表示
+    /// </summary>
+    private static void CreateKanjiPickup(string kanjiName, Vector3 position)
     {
-        GameObject pickup = new GameObject(objName);
-        pickup.transform.position = position;
-        pickup.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
-
-        // SpriteRenderer
-        SpriteRenderer sr = pickup.AddComponent<SpriteRenderer>();
-        sr.sprite = GetCircleSprite();
-        sr.sortingOrder = 5;
-
-        // 色設定
-        ItemData data = ItemDatabase.GetByName(itemName);
-        if (data != null)
+        ItemData data = ItemDatabase.GetByName(kanjiName);
+        if (data == null)
         {
-            sr.color = data.displayColor;
+            Debug.LogWarning($"[SceneSetup] アイテム '{kanjiName}' がデータベースに見つかりません");
+            return;
         }
 
-        // CircleCollider2D（トリガー）
+        GameObject pickup = new GameObject("Pickup_" + kanjiName);
+        pickup.transform.position = position;
+
+        // --- 漢字文字表示（TextMesh）---
+        TextMesh tm = pickup.AddComponent<TextMesh>();
+        tm.text = data.displayCharacter;
+        tm.fontSize = 64;
+        tm.characterSize = 0.15f;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.color = data.displayColor;
+        tm.fontStyle = FontStyle.Bold;
+
+        // MeshRenderer の sortingOrder を設定
+        MeshRenderer mr = pickup.GetComponent<MeshRenderer>();
+        if (mr != null)
+        {
+            mr.sortingOrder = 5;
+        }
+
+        // --- 背景の光る丸（子オブジェクト）---
+        GameObject glow = new GameObject("Glow");
+        glow.transform.SetParent(pickup.transform);
+        glow.transform.localPosition = Vector3.zero;
+        glow.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
+
+        SpriteRenderer glowSR = glow.AddComponent<SpriteRenderer>();
+        glowSR.sprite = FindBuiltinSprite("Knob", "Circle");
+        Color glowColor = data.displayColor;
+        glowColor.a = 0.25f;
+        glowSR.color = glowColor;
+        glowSR.sortingOrder = 4;
+
+        // --- コライダー（トリガー）---
         CircleCollider2D trigger = pickup.AddComponent<CircleCollider2D>();
         trigger.isTrigger = true;
-        trigger.radius = 2f;
+        trigger.radius = 1.5f;
 
-        // ItemPickup スクリプト
+        // --- ItemPickup スクリプト ---
         ItemPickup itemPickup = pickup.AddComponent<ItemPickup>();
-        itemPickup.SetItemName(itemName);
+        itemPickup.SetItemName(kanjiName);
     }
 
     // ==============================
@@ -200,31 +231,26 @@ public class SceneSetupTool : Editor
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // インベントリ（左上）
         GameObject invTextObj = CreateTextUI(canvasObj, "InventoryText",
-            "--- インベントリ ---\n(空)",
+            "--- 所持漢字 ---\n(空)",
             new Vector2(20f, -20f), new Vector2(300f, 200f), TextAnchor.UpperLeft);
         SetAnchors(invTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
 
-        // 操作説明（右下）
         GameObject ctrlTextObj = CreateTextUI(canvasObj, "ControlsText",
-            "--- 操作方法 ---\nWASD : 移動\nマウス : 照準\n左クリック : 射撃\nC : クラフト",
+            "--- 操作方法 ---\nWASD : 移動\nマウス : 照準\n左クリック : 射撃\nC : 漢字合成",
             new Vector2(-20f, 20f), new Vector2(280f, 160f), TextAnchor.LowerRight);
         SetAnchors(ctrlTextObj, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
 
-        // メッセージ（中央上）
         GameObject msgTextObj = CreateTextUI(canvasObj, "MessageText", "",
             new Vector2(0f, -60f), new Vector2(600f, 50f), TextAnchor.MiddleCenter);
         SetAnchors(msgTextObj, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
         msgTextObj.GetComponent<Text>().fontSize = 22;
         msgTextObj.GetComponent<Text>().color = Color.yellow;
 
-        // レシピ（左下）
         GameObject recipeTextObj = CreateTextUI(canvasObj, "RecipeText", "",
             new Vector2(20f, 20f), new Vector2(350f, 120f), TextAnchor.LowerLeft);
         SetAnchors(recipeTextObj, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
 
-        // GameHUD
         GameHUD hud = canvasObj.AddComponent<GameHUD>();
         SetPrivateField(hud, "inventoryText", invTextObj.GetComponent<Text>());
         SetPrivateField(hud, "controlsText", ctrlTextObj.GetComponent<Text>());
@@ -235,13 +261,10 @@ public class SceneSetupTool : Editor
     // ==============================
     //  ヘルパー
     // ==============================
-
-    private static void SetAnchors(GameObject obj, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
+    private static void SetAnchors(GameObject obj, Vector2 min, Vector2 max, Vector2 pivot)
     {
         RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.anchorMin = anchorMin;
-        rt.anchorMax = anchorMax;
-        rt.pivot = pivot;
+        rt.anchorMin = min; rt.anchorMax = max; rt.pivot = pivot;
     }
 
     private static GameObject CreateTextUI(GameObject parent, string name, string content,
@@ -263,7 +286,6 @@ public class SceneSetupTool : Editor
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
 
-        // 半透明黒背景
         GameObject bgObj = new GameObject(name + "_BG");
         bgObj.transform.SetParent(obj.transform, false);
         bgObj.transform.SetAsFirstSibling();
@@ -288,34 +310,15 @@ public class SceneSetupTool : Editor
         if (field != null) field.SetValue(target, value);
     }
 
-    // ==============================
-    //  スプライト取得
-    // ==============================
-
-    private static Sprite GetSquareSprite()
-    {
-        return FindBuiltinSprite("UISprite", "Square");
-    }
-
-    private static Sprite GetCircleSprite()
-    {
-        return FindBuiltinSprite("Knob", "Circle");
-    }
-
-    /// <summary>
-    /// Unity内蔵スプライトを名前で検索
-    /// </summary>
     private static Sprite FindBuiltinSprite(string primaryName, string fallbackName)
     {
         Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
         Sprite fallback = null;
-
         foreach (var s in allSprites)
         {
             if (s.name == primaryName) return s;
             if (s.name == fallbackName) fallback = s;
         }
-
         return fallback;
     }
 }

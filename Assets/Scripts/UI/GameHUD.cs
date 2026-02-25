@@ -29,14 +29,14 @@ namespace ZombieSurvival
                     "WASD : 移動\n" +
                     "マウス : 照準\n" +
                     "左クリック : 射撃\n" +
-                    "C : クラフト";
+                    "C : 漢字合成";
             }
 
             // レシピ表示
             if (recipeText != null && CraftingManager.Instance != null)
             {
                 var recipes = CraftingManager.Instance.GetAvailableRecipes();
-                recipeText.text = "--- レシピ ---\n" + string.Join("\n", recipes);
+                recipeText.text = "--- 合成レシピ ---\n" + string.Join("\n", recipes);
             }
 
             // イベント購読
@@ -85,7 +85,7 @@ namespace ZombieSurvival
             if (recipeText != null && string.IsNullOrEmpty(recipeText.text) && CraftingManager.Instance != null)
             {
                 var recipes = CraftingManager.Instance.GetAvailableRecipes();
-                recipeText.text = "--- レシピ ---\n" + string.Join("\n", recipes);
+                recipeText.text = "--- 合成レシピ ---\n" + string.Join("\n", recipes);
             }
         }
 
@@ -97,7 +97,7 @@ namespace ZombieSurvival
             if (inventoryText == null || InventoryManager.Instance == null) return;
 
             var items = InventoryManager.Instance.GetAllItems();
-            string display = "--- インベントリ ---\n";
+            string display = "--- 所持漢字 ---\n";
 
             if (items.Count == 0)
             {

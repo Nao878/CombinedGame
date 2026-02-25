@@ -34,9 +34,11 @@ namespace ZombieSurvival
         {
             if (InventoryManager.Instance == null) return;
 
-            // いずれかの武器を持っているか確認
-            bool hasWeapon = InventoryManager.Instance.HasItem("ハンドガン") ||
-                             InventoryManager.Instance.HasItem("釘バット");
+            // いずれかの漢字武器を持っているか確認
+            bool hasWeapon = InventoryManager.Instance.HasItem("銃") ||
+                             InventoryManager.Instance.HasItem("剣") ||
+                             InventoryManager.Instance.HasItem("板") ||
+                             InventoryManager.Instance.HasItem("爆");
 
             if (!hasWeapon) return;
 

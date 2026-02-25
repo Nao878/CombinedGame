@@ -3,36 +3,24 @@ using UnityEngine;
 namespace ZombieSurvival
 {
     /// <summary>
-    /// フィールド上に配置されるアイテムオブジェクト（2D版）
-    /// プレイヤーが近づくと自動取得される
+    /// フィールド上に配置される漢字パーツオブジェクト（2D版）
+    /// TextMesh で漢字1文字を表示し、プレイヤー接近で自動取得
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
     public class ItemPickup : MonoBehaviour
     {
         [Header("アイテム設定")]
-        [SerializeField] private string itemName = "鉄くず";
+        [SerializeField] private string itemName = "金";
 
         [Header("ビジュアル")]
         [SerializeField] private float bobSpeed = 2f;
         [SerializeField] private float bobHeight = 0.15f;
-        [SerializeField] private float rotateSpeed = 90f;
 
         private Vector3 startPos;
 
         private void Start()
         {
             startPos = transform.position;
-
-            // アイテムの色を設定
-            ItemData data = ItemDatabase.GetByName(itemName);
-            if (data != null)
-            {
-                SpriteRenderer sr = GetComponent<SpriteRenderer>();
-                if (sr != null)
-                {
-                    sr.color = data.displayColor;
-                }
-            }
         }
 
         private void Update()
@@ -40,9 +28,6 @@ namespace ZombieSurvival
             // 浮遊アニメーション（Y軸で上下）
             float newY = startPos.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
             transform.position = new Vector3(startPos.x, newY, startPos.z);
-
-            // Z軸回転アニメーション
-            transform.Rotate(0f, 0f, rotateSpeed * Time.deltaTime);
         }
 
         private void OnTriggerEnter2D(Collider2D other)
