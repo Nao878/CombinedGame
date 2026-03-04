@@ -5,8 +5,8 @@ using UnityEngine.UI;
 namespace ZombieSurvival
 {
     /// <summary>
-    /// ゲームのHUD表示
-    /// インベントリ内容、操作説明、クラフト結果のフィードバックを表示
+    /// ゲームのHUD表示（グリッドベース・ターン制版）
+    /// 所持漢字、操作説明、合成レシピ、メッセージを表示
     /// </summary>
     public class GameHUD : MonoBehaviour
     {
@@ -15,31 +15,28 @@ namespace ZombieSurvival
         [SerializeField] private Text controlsText;
         [SerializeField] private Text messageText;
         [SerializeField] private Text recipeText;
+        [SerializeField] private Text turnText;
 
         private float messageTimer = 0f;
         private float messageDuration = 3f;
 
         private void Start()
         {
-            // 操作説明の設定
             if (controlsText != null)
             {
                 controlsText.text =
-                    "--- 操作方法 ---\n" +
-                    "WASD : 移動\n" +
-                    "マウス : 照準\n" +
-                    "左クリック : 射撃\n" +
+                    "--- 操作 ---\n" +
+                    "WASD : 1マス移動\n" +
+                    "Space : 攻撃\n" +
                     "C : 漢字合成";
             }
 
-            // レシピ表示
             if (recipeText != null && CraftingManager.Instance != null)
             {
                 var recipes = CraftingManager.Instance.GetAvailableRecipes();
                 recipeText.text = "--- 合成レシピ ---\n" + string.Join("\n", recipes);
             }
 
-            // イベント購読
             if (InventoryManager.Instance != null)
             {
                 InventoryManager.Instance.OnInventoryChanged += UpdateInventoryDisplay;
@@ -51,6 +48,12 @@ namespace ZombieSurvival
             {
                 CraftingManager.Instance.OnCraftSuccess += ShowMessage;
                 CraftingManager.Instance.OnCraftFailed += ShowMessage;
+            }
+
+            if (TurnManager.Instance != null)
+            {
+                TurnManager.Instance.OnTurnEnd += UpdateTurnDisplay;
+                UpdateTurnDisplay(0);
             }
         }
 
@@ -67,11 +70,15 @@ namespace ZombieSurvival
                 CraftingManager.Instance.OnCraftSuccess -= ShowMessage;
                 CraftingManager.Instance.OnCraftFailed -= ShowMessage;
             }
+
+            if (TurnManager.Instance != null)
+            {
+                TurnManager.Instance.OnTurnEnd -= UpdateTurnDisplay;
+            }
         }
 
         private void Update()
         {
-            // メッセージのフェードアウト
             if (messageTimer > 0f)
             {
                 messageTimer -= Time.deltaTime;
@@ -81,7 +88,7 @@ namespace ZombieSurvival
                 }
             }
 
-            // レシピ表示を遅延更新（Startでシングルトンが間に合わない場合）
+            // レシピ遅延更新
             if (recipeText != null && string.IsNullOrEmpty(recipeText.text) && CraftingManager.Instance != null)
             {
                 var recipes = CraftingManager.Instance.GetAvailableRecipes();
@@ -89,9 +96,6 @@ namespace ZombieSurvival
             }
         }
 
-        /// <summary>
-        /// インベントリ表示を更新
-        /// </summary>
         private void UpdateInventoryDisplay()
         {
             if (inventoryText == null || InventoryManager.Instance == null) return;
@@ -114,23 +118,25 @@ namespace ZombieSurvival
             inventoryText.text = display;
         }
 
-        /// <summary>
-        /// アイテム取得時のフィードバック
-        /// </summary>
         private void OnItemPickedUp(string itemName)
         {
             ShowMessage($"「{itemName}」を拾った！");
         }
 
-        /// <summary>
-        /// メッセージ表示
-        /// </summary>
         private void ShowMessage(string msg)
         {
             if (messageText != null)
             {
                 messageText.text = msg;
                 messageTimer = messageDuration;
+            }
+        }
+
+        private void UpdateTurnDisplay(int turn)
+        {
+            if (turnText != null)
+            {
+                turnText.text = $"ターン: {turn}";
             }
         }
     }

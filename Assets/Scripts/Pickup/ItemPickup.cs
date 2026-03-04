@@ -3,10 +3,9 @@ using UnityEngine;
 namespace ZombieSurvival
 {
     /// <summary>
-    /// フィールド上に配置される漢字パーツオブジェクト（2D版）
-    /// TextMesh で漢字1文字を表示し、プレイヤー接近で自動取得
+    /// フィールド上に配置される漢字パーツオブジェクト（グリッドベース版）
+    /// プレイヤーが同一グリッドに到達すると取得される
     /// </summary>
-    [RequireComponent(typeof(Collider2D))]
     public class ItemPickup : MonoBehaviour
     {
         [Header("アイテム設定")]
@@ -14,32 +13,32 @@ namespace ZombieSurvival
 
         [Header("ビジュアル")]
         [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobHeight = 0.15f;
+        [SerializeField] private float bobHeight = 0.1f;
 
-        private Vector3 startPos;
+        private Vector3 basePos;
 
         private void Start()
         {
-            startPos = transform.position;
+            basePos = transform.position;
         }
 
         private void Update()
         {
             // 浮遊アニメーション（Y軸で上下）
-            float newY = startPos.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
-            transform.position = new Vector3(startPos.x, newY, startPos.z);
+            float offset = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
+            transform.position = basePos + new Vector3(0f, offset, 0f);
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        /// <summary>
+        /// アイテムを取得する（GridMovement から呼ばれる）
+        /// </summary>
+        public void PickUp()
         {
-            if (other.CompareTag("Player"))
+            if (InventoryManager.Instance != null)
             {
-                if (InventoryManager.Instance != null)
-                {
-                    InventoryManager.Instance.AddItem(itemName);
-                }
-                Destroy(gameObject);
+                InventoryManager.Instance.AddItem(itemName);
             }
+            Destroy(gameObject);
         }
 
         /// <summary>
