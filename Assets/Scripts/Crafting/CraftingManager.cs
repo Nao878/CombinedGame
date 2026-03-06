@@ -34,11 +34,8 @@ namespace ZombieSurvival
 
         private void Update()
         {
-            // Cキーでクラフト試行
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                TryCraft();
-            }
+            // 合成はドラッグ＆ドロップUI（CraftingUI）で行う
+            // Cキー合成は廃止
         }
 
         /// <summary>

@@ -129,9 +129,11 @@ public static class GameDesignDocGenerator
             ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "Orthographic 2D カメラ"),
             ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "漢字パーツ管理 + イベント通知"),
             ("Assets/Scripts/Pickup/ItemPickup.cs",         "漢字パーツ拾得",       "グリッド座標一致で自動取得"),
-            ("Assets/Scripts/Crafting/CraftingManager.cs",  "漢字合成",             "C キーで合成 → 武器なら自動装備"),
+            ("Assets/Scripts/UI/CraftingUI.cs",             "D&D合成UI",           "ドラッグ＆ドロップ合成 + レシピ照合 + 自動装備"),
+            ("Assets/Scripts/UI/DraggableCard.cs",          "漢字カード",           "手札からドラッグ可能な漢字UI要素"),
+            ("Assets/Scripts/UI/CraftSlot.cs",              "合成スロット",         "ドロップ受取り + 合成チェック呼出し"),
             ("Assets/Scripts/Weapon/WeaponController.cs",   "装備＆武器攻撃",       "1つ装備 + 剣:前1マス / 銃:直線 / 爆:周囲8マス"),
-            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "所持漢字 / HP / 装備 / ターン / レシピ"),
+            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "HP / 装備 / ターン / レシピ / メッセージ"),
             ("Assets/Scripts/Data/ItemData.cs",             "漢字データ定義",       "ItemData + displayCharacter"),
             ("Assets/Scripts/Data/ItemDatabase.cs",         "漢字 DB",              "漢字パーツ + 武器 + レシピ"),
         };
@@ -152,10 +154,10 @@ public static class GameDesignDocGenerator
     {
         sb.AppendLine("## 7. 未実装・今後の予定");
         sb.AppendLine();
-        sb.AppendLine("- [ ] **ドラッグ＆ドロップ合成UI** ― スロットベースの手動合成");
         sb.AppendLine("- [ ] **障害物** ― 通行不可マスの実装");
         sb.AppendLine("- [ ] **マップ生成** ― ランダムダンジョン");
         sb.AppendLine("- [ ] **ゲームオーバー画面** ― HP ゼロ時のUI処理");
+        sb.AppendLine("- [ ] **敵種別追加** ― 新漢字ゾンビの追加");
         sb.AppendLine();
     }
 
