@@ -66,6 +66,21 @@ namespace ZombieSurvival
                     // 成果物を追加
                     inventory.AddItem(recipe.result);
 
+                    // 武器なら自動装備
+                    ItemData resultData = ItemDatabase.GetByName(recipe.result);
+                    if (resultData != null && resultData.itemType == ItemType.Weapon)
+                    {
+                        GameObject player = GameObject.FindGameObjectWithTag("Player");
+                        if (player != null)
+                        {
+                            WeaponController wc = player.GetComponent<WeaponController>();
+                            if (wc != null)
+                            {
+                                wc.Equip(recipe.result);
+                            }
+                        }
+                    }
+
                     string msg = $"{recipe.material1}x{recipe.amount1} + {recipe.material2}x{recipe.amount2} → {recipe.result} を合成！";
                     Debug.Log($"[Crafting] {msg}");
                     OnCraftSuccess?.Invoke(msg);

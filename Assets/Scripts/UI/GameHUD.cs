@@ -16,6 +16,8 @@ namespace ZombieSurvival
         [SerializeField] private Text messageText;
         [SerializeField] private Text recipeText;
         [SerializeField] private Text turnText;
+        [SerializeField] private Text hpText;
+        [SerializeField] private Text weaponText;
 
         private float messageTimer = 0f;
         private float messageDuration = 3f;
@@ -55,6 +57,14 @@ namespace ZombieSurvival
                 TurnManager.Instance.OnTurnEnd += UpdateTurnDisplay;
                 UpdateTurnDisplay(0);
             }
+
+            if (PlayerHealth.Instance != null)
+            {
+                PlayerHealth.Instance.OnHPChanged += UpdateHPDisplay;
+                UpdateHPDisplay(PlayerHealth.Instance.CurrentHP, PlayerHealth.Instance.MaxHP);
+            }
+
+            UpdateWeaponDisplay();
         }
 
         private void OnDestroy()
@@ -74,6 +84,11 @@ namespace ZombieSurvival
             if (TurnManager.Instance != null)
             {
                 TurnManager.Instance.OnTurnEnd -= UpdateTurnDisplay;
+            }
+
+            if (PlayerHealth.Instance != null)
+            {
+                PlayerHealth.Instance.OnHPChanged -= UpdateHPDisplay;
             }
         }
 
@@ -138,6 +153,27 @@ namespace ZombieSurvival
             {
                 turnText.text = $"ターン: {turn}";
             }
+        }
+
+        private void UpdateHPDisplay(int current, int max)
+        {
+            if (hpText != null)
+            {
+                hpText.text = $"HP: {current}/{max}";
+                hpText.color = current <= 1 ? Color.red : Color.white;
+            }
+        }
+
+        private void UpdateWeaponDisplay()
+        {
+            if (weaponText == null) return;
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) { weaponText.text = "装備: なし"; return; }
+            var wc = player.GetComponent<WeaponController>();
+            if (wc == null || string.IsNullOrEmpty(wc.EquippedWeapon))
+                weaponText.text = "装備: なし";
+            else
+                weaponText.text = $"装備: 「{wc.EquippedWeapon}」";
         }
     }
 }

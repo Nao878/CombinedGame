@@ -134,8 +134,16 @@ namespace ZombieSurvival
         /// </summary>
         private void Attack()
         {
-            Debug.Log($"[EnemyAI] 「腐」がプレイヤーにダメージ！ (攻撃力: {attackDamage})");
-            // 将来的にHPシステムと連携
+            Debug.Log($"[EnemyAI] 「腐」がプレイヤーに自爆ダメージ！ (攻撃力: {attackDamage})");
+
+            // プレイヤーにダメージ
+            if (PlayerHealth.Instance != null)
+            {
+                PlayerHealth.Instance.TakeDamage(attackDamage);
+            }
+
+            // 自己消滅
+            Destroy(gameObject);
         }
 
         /// <summary>

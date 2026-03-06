@@ -29,6 +29,11 @@ namespace ZombieSurvival
         /// </summary>
         public Vector2Int GridPosition { get; private set; }
 
+        /// <summary>
+        /// プレイヤーの向き（最後に移動した方向）
+        /// </summary>
+        public Vector2Int FacingDirection { get; private set; } = Vector2Int.up;
+
         private bool isMoving = false;
         private Vector3 moveFrom;
         private Vector3 moveTo;
@@ -93,6 +98,7 @@ namespace ZombieSurvival
 
             // 移動実行
             GridPosition = targetPos;
+            FacingDirection = direction;
             moveFrom = transform.position;
             moveTo = new Vector3(targetPos.x * gridSize, targetPos.y * gridSize, 0f);
             moveTimer = 0f;

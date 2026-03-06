@@ -122,16 +122,16 @@ public static class GameDesignDocGenerator
 
         var features = new (string script, string label, string detail)[]
         {
-            ("Assets/Scripts/Player/GridMovement.cs",       "グリッド移動",         "WASD 1マス移動 + 範囲制限 + ターン通知"),
-            ("Assets/Scripts/Core/TurnManager.cs",          "ターンマネージャー",   "プレイヤー行動→敵ターン→次ターンの進行制御"),
-            ("Assets/Scripts/Enemy/EnemyAI.cs",              "敵AI（ゾンビ）",       "「腐」グリッド追跡 + 同マス攻撃"),
+            ("Assets/Scripts/Player/GridMovement.cs",       "グリッド移動",         "WASD 1マス移動 + 範囲制限 + 向き追跡"),
+            ("Assets/Scripts/Player/PlayerHealth.cs",       "HPシステム",           "HP 3/3 + ダメージ + ゲームオーバー判定"),
+            ("Assets/Scripts/Core/TurnManager.cs",          "ターンマネージャー",   "プレイヤー行動→敵ターン→次ターン"),
+            ("Assets/Scripts/Enemy/EnemyAI.cs",              "敵AI（ゾンビ）",       "「腐」追跡 + 同マス自爆ダメージ + 消滅"),
             ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "Orthographic 2D カメラ"),
             ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "漢字パーツ管理 + イベント通知"),
             ("Assets/Scripts/Pickup/ItemPickup.cs",         "漢字パーツ拾得",       "グリッド座標一致で自動取得"),
-            ("Assets/Scripts/Crafting/CraftingManager.cs",  "漢字合成",             "C キーで合成 → パーツ消費 → 武器生成"),
-            ("Assets/Scripts/Weapon/WeaponController.cs",   "漢字武器攻撃",         "Space キーで弾発射（Transform移動）"),
-            ("Assets/Scripts/Weapon/Bullet.cs",             "弾",                   "Transform直進 + 時間消滅"),
-            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "所持漢字 / 操作 / レシピ / ターン / メッセージ"),
+            ("Assets/Scripts/Crafting/CraftingManager.cs",  "漢字合成",             "C キーで合成 → 武器なら自動装備"),
+            ("Assets/Scripts/Weapon/WeaponController.cs",   "装備＆武器攻撃",       "1つ装備 + 剣:前1マス / 銃:直線 / 爆:周囲8マス"),
+            ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "所持漢字 / HP / 装備 / ターン / レシピ"),
             ("Assets/Scripts/Data/ItemData.cs",             "漢字データ定義",       "ItemData + displayCharacter"),
             ("Assets/Scripts/Data/ItemDatabase.cs",         "漢字 DB",              "漢字パーツ + 武器 + レシピ"),
         };
@@ -152,11 +152,10 @@ public static class GameDesignDocGenerator
     {
         sb.AppendLine("## 7. 未実装・今後の予定");
         sb.AppendLine();
-        sb.AppendLine("- [ ] **HP システム** ― プレイヤーとゾンビの体力");
-        sb.AppendLine("- [ ] **近接武器** ― 剣の隣接マス攻撃");
+        sb.AppendLine("- [ ] **ドラッグ＆ドロップ合成UI** ― スロットベースの手動合成");
         sb.AppendLine("- [ ] **障害物** ― 通行不可マスの実装");
         sb.AppendLine("- [ ] **マップ生成** ― ランダムダンジョン");
-        sb.AppendLine("- [ ] **ゲームオーバー** ― HP ゼロ時の処理");
+        sb.AppendLine("- [ ] **ゲームオーバー画面** ― HP ゼロ時のUI処理");
         sb.AppendLine();
     }
 

@@ -164,6 +164,30 @@ public class SceneSetupTool : Editor
         GridMovement gm = player.AddComponent<GridMovement>();
         gm.SetBounds(MAP_MIN_X, MAP_MAX_X, MAP_MIN_Y, MAP_MAX_Y);
 
+        // HP
+        player.AddComponent<PlayerHealth>();
+
+        // 装備武器表示（向き方向の隣に表示）
+        GameObject weaponDisp = new GameObject("EquippedWeaponDisplay");
+        weaponDisp.transform.SetParent(player.transform);
+        weaponDisp.transform.localPosition = new Vector3(0f, 1f, 0f); // 初期=上向き
+
+        TextMesh wtm = weaponDisp.AddComponent<TextMesh>();
+        wtm.text = "";
+        wtm.fontSize = 48;
+        wtm.characterSize = 0.14f;
+        wtm.anchor = TextAnchor.MiddleCenter;
+        wtm.alignment = TextAlignment.Center;
+        wtm.color = new Color(1f, 0.9f, 0.3f); // 黄金色
+        wtm.fontStyle = FontStyle.Bold;
+
+        MeshRenderer wmr = weaponDisp.GetComponent<MeshRenderer>();
+        if (wmr != null)
+        {
+            wmr.sortingOrder = 11;
+            wmr.enabled = false; // 初期非表示
+        }
+
         // 武器コントローラー
         player.AddComponent<WeaponController>();
 
@@ -334,6 +358,20 @@ public class SceneSetupTool : Editor
         turnTextObj.GetComponent<Text>().fontSize = 22;
         turnTextObj.GetComponent<Text>().color = new Color(0.8f, 1f, 0.5f);
 
+        // HP表示（左上、ターンの下）
+        GameObject hpTextObj = CreateTextUI(canvasObj, "HPText", "HP: 3/3",
+            new Vector2(20f, -65f), new Vector2(200f, 40f), TextAnchor.UpperLeft);
+        SetAnchors(hpTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+        hpTextObj.GetComponent<Text>().fontSize = 22;
+        hpTextObj.GetComponent<Text>().color = Color.white;
+
+        // 装備表示（左上、HPの下）
+        GameObject weaponTextObj = CreateTextUI(canvasObj, "WeaponText", "装備: なし",
+            new Vector2(20f, -110f), new Vector2(200f, 40f), TextAnchor.UpperLeft);
+        SetAnchors(weaponTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+        weaponTextObj.GetComponent<Text>().fontSize = 20;
+        weaponTextObj.GetComponent<Text>().color = new Color(1f, 0.9f, 0.3f);
+
         // HUD
         GameHUD hud = canvasObj.AddComponent<GameHUD>();
         SetPrivateField(hud, "inventoryText", invTextObj.GetComponent<Text>());
@@ -341,6 +379,8 @@ public class SceneSetupTool : Editor
         SetPrivateField(hud, "messageText", msgTextObj.GetComponent<Text>());
         SetPrivateField(hud, "recipeText", recipeTextObj.GetComponent<Text>());
         SetPrivateField(hud, "turnText", turnTextObj.GetComponent<Text>());
+        SetPrivateField(hud, "hpText", hpTextObj.GetComponent<Text>());
+        SetPrivateField(hud, "weaponText", weaponTextObj.GetComponent<Text>());
     }
 
     // ==============================
