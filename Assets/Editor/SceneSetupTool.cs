@@ -36,6 +36,7 @@ public class SceneSetupTool : Editor
         SetupGround();
         SetupPlayer();
         SetupKanjiPickups();
+        SetupEnemies();
         SetupUI();
 
         GameDesignDocGenerator.Generate();
@@ -49,6 +50,10 @@ public class SceneSetupTool : Editor
         // ItemPickupオブジェクトをすべて削除
         var pickups = GameObject.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None);
         foreach (var p in pickups) DestroyImmediate(p.gameObject);
+
+        // EnemyAIオブジェクトをすべて削除
+        var enemies = GameObject.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+        foreach (var e in enemies) DestroyImmediate(e.gameObject);
 
         string[] objectNames = {
             "Player", "Ground", "GridLines", "Main Camera",
@@ -235,6 +240,52 @@ public class SceneSetupTool : Editor
         // ItemPickup スクリプト（コライダー不要）
         ItemPickup itemPickup = pickup.AddComponent<ItemPickup>();
         itemPickup.SetItemName(kanjiName);
+    }
+
+    // ==============================
+    //  敵ゾンビ
+    // ==============================
+    private static void SetupEnemies()
+    {
+        CreateEnemy("腐", 7, 5);
+        CreateEnemy("腐", -6, -4);
+        CreateEnemy("腐", -8, 3);
+    }
+
+    /// <summary>
+    /// 敵「腐」をグリッド座標に配置
+    /// </summary>
+    private static void CreateEnemy(string kanjiChar, int gridX, int gridY)
+    {
+        GameObject enemy = new GameObject("Enemy_" + kanjiChar);
+        enemy.transform.position = new Vector3(gridX * GRID, gridY * GRID, 0f);
+
+        // 赤い漢字で表示
+        TextMesh tm = enemy.AddComponent<TextMesh>();
+        tm.text = kanjiChar;
+        tm.fontSize = 64;
+        tm.characterSize = 0.18f;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.color = new Color(1f, 0.2f, 0.15f); // 赤色
+        tm.fontStyle = FontStyle.Bold;
+
+        MeshRenderer mr = enemy.GetComponent<MeshRenderer>();
+        if (mr != null) mr.sortingOrder = 9;
+
+        // 背景の赤い光
+        GameObject glow = new GameObject("Glow");
+        glow.transform.SetParent(enemy.transform);
+        glow.transform.localPosition = Vector3.zero;
+        glow.transform.localScale = new Vector3(1f, 1f, 1f);
+
+        SpriteRenderer glowSR = glow.AddComponent<SpriteRenderer>();
+        glowSR.sprite = FindBuiltinSprite("Knob", "Circle");
+        glowSR.color = new Color(1f, 0f, 0f, 0.15f);
+        glowSR.sortingOrder = 8;
+
+        // EnemyAI スクリプト
+        enemy.AddComponent<EnemyAI>();
     }
 
     // ==============================

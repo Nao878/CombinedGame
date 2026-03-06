@@ -109,9 +109,9 @@ public static class GameDesignDocGenerator
     {
         sb.AppendLine("## 5. 敵データ");
         sb.AppendLine();
-        sb.AppendLine("| 種類 | HP | 攻撃力 | 移動 | 備考 |");
-        sb.AppendLine("|------|----|----|------|------|");
-        sb.AppendLine("| （未実装） | - | - | - | ターン制AI実装後に追加 |");
+        sb.AppendLine("| 種類 | 表示 | HP | 攻撃力 | AI | 備考 |");
+        sb.AppendLine("|------|------|----|----|------|------|");
+        sb.AppendLine("| ゾンビ | 「腐」（赤字） | - | 1 | X/Y距離優先追跡 | 毎ターン1マス移動 |");
         sb.AppendLine();
     }
 
@@ -124,6 +124,7 @@ public static class GameDesignDocGenerator
         {
             ("Assets/Scripts/Player/GridMovement.cs",       "グリッド移動",         "WASD 1マス移動 + 範囲制限 + ターン通知"),
             ("Assets/Scripts/Core/TurnManager.cs",          "ターンマネージャー",   "プレイヤー行動→敵ターン→次ターンの進行制御"),
+            ("Assets/Scripts/Enemy/EnemyAI.cs",              "敵AI（ゾンビ）",       "「腐」グリッド追跡 + 同マス攻撃"),
             ("Assets/Scripts/Camera/CameraFollow.cs",       "カメラ追従",           "Orthographic 2D カメラ"),
             ("Assets/Scripts/Inventory/InventoryManager.cs", "インベントリ",         "漢字パーツ管理 + イベント通知"),
             ("Assets/Scripts/Pickup/ItemPickup.cs",         "漢字パーツ拾得",       "グリッド座標一致で自動取得"),
@@ -151,8 +152,6 @@ public static class GameDesignDocGenerator
     {
         sb.AppendLine("## 7. 未実装・今後の予定");
         sb.AppendLine();
-        sb.AppendLine("- [ ] **ターンマネージャー** ― プレイヤー→敵→次ターンの制御");
-        sb.AppendLine("- [ ] **ゾンビ AI** ― グリッド上の移動 + 追跡 + 攻撃");
         sb.AppendLine("- [ ] **HP システム** ― プレイヤーとゾンビの体力");
         sb.AppendLine("- [ ] **近接武器** ― 剣の隣接マス攻撃");
         sb.AppendLine("- [ ] **障害物** ― 通行不可マスの実装");
