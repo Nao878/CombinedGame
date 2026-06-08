@@ -137,8 +137,12 @@ namespace ZombieSurvival
         private void AttackMelee(Vector2Int facing)
         {
             Vector2Int targetPos = gridMovement.GridPosition + facing;
-            EnemyAI enemy = FindEnemyAtPosition(targetPos);
+            Vector3 worldPos = new Vector3(targetPos.x, targetPos.y, -5f);
 
+            // 斬撃エフェクト（常に表示）
+            SpawnEffect("JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Impacts/CFXR Hit A (Red)", worldPos);
+
+            EnemyAI enemy = FindEnemyAtPosition(targetPos);
             if (enemy != null)
             {
                 Debug.Log($"[Weapon] 「剣」で ({targetPos.x},{targetPos.y}) の敵を斬撃！");
@@ -156,14 +160,22 @@ namespace ZombieSurvival
         private void AttackRanged(Vector2Int facing)
         {
             Vector2Int checkPos = gridMovement.GridPosition + facing;
+            Vector3 muzzlePos = new Vector3(gridMovement.GridPosition.x, gridMovement.GridPosition.y, -5f);
 
-            // 最大20マス先まで走査
+            // マズルフラッシュ
+            SpawnEffect("JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Misc/CFXR Flash", muzzlePos, 0.5f);
+
             for (int i = 0; i < 20; i++)
             {
                 EnemyAI enemy = FindEnemyAtPosition(checkPos);
                 if (enemy != null)
                 {
                     Debug.Log($"[Weapon] 「銃」で ({checkPos.x},{checkPos.y}) の敵を撃破！");
+
+                    // 着弾爆発エフェクト
+                    Vector3 hitPos = new Vector3(checkPos.x, checkPos.y, -5f);
+                    SpawnEffect("JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Explosions/CFXR Explosion 1", hitPos);
+
                     Destroy(enemy.gameObject);
                     return;
                 }
@@ -240,6 +252,56 @@ namespace ZombieSurvival
 
             Vector2Int facing = gridMovement.FacingDirection;
             weaponDisplay.transform.localPosition = new Vector3(facing.x, facing.y, 0f);
+        }
+
+        // ==============================
+        //  CFXR エフェクト
+        // ==============================
+
+        /// <summary>
+        /// CFXRエフェクトを生成・再生・自動破棄
+        /// </summary>
+        private void SpawnEffect(string prefabPath, Vector3 position, float scale = 1f)
+        {
+#if UNITY_EDITOR
+            GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/" + prefabPath + ".prefab");
+#else
+            GameObject prefab = Resources.Load<GameObject>(prefabPath);
+#endif
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[Weapon] エフェクトが見つかりません: {prefabPath}");
+                return;
+            }
+
+            GameObject fx = Instantiate(prefab, position, Quaternion.identity);
+
+            // スケール設定 + ParticleSystem ScalingMode を Hierarchy に
+            fx.transform.localScale = Vector3.one * scale;
+            var particles = fx.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (var ps in particles)
+            {
+                var main = ps.main;
+                main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            }
+
+            // 2D表示用: SortingOrderを最前面に
+            SetupParticleSorting(fx, 100);
+
+            // 5秒後に自動破棄
+            Destroy(fx, 5f);
+        }
+
+        /// <summary>
+        /// ParticleSystemRendererのSortingOrderを設定（2D表示対応）
+        /// </summary>
+        private void SetupParticleSorting(GameObject fx, int sortingOrder)
+        {
+            var renderers = fx.GetComponentsInChildren<ParticleSystemRenderer>(true);
+            foreach (var r in renderers)
+            {
+                r.sortingOrder = sortingOrder;
+            }
         }
     }
 }

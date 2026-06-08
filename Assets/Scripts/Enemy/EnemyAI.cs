@@ -25,6 +25,7 @@ namespace ZombieSurvival
         private Vector3 moveFrom;
         private Vector3 moveTo;
         private float moveTimer;
+        private int turnCounter = 0; // 2ターンに1回行動用カウンター
 
         private void Start()
         {
@@ -69,6 +70,13 @@ namespace ZombieSurvival
         /// </summary>
         private void OnEnemyTurn()
         {
+            // 2ターンに1回だけ行動
+            turnCounter++;
+            if (turnCounter % 2 != 0)
+            {
+                return; // 奇数ターンは待機
+            }
+
             // プレイヤーの位置を取得
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player == null) return;

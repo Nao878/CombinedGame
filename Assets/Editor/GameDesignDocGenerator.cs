@@ -111,7 +111,7 @@ public static class GameDesignDocGenerator
         sb.AppendLine();
         sb.AppendLine("| 種類 | 表示 | HP | 攻撃力 | AI | 備考 |");
         sb.AppendLine("|------|------|----|----|------|------|");
-        sb.AppendLine("| ゾンビ | 「腐」（赤字） | - | 1 | X/Y距離優先追跡 | 毎ターン1マス移動 |");
+        sb.AppendLine("| ゾンビ | 「腐」（赤字） | - | 1 | X/Y距離優先追跡 | 2ターンに1回移動 |");
         sb.AppendLine();
     }
 
@@ -132,7 +132,7 @@ public static class GameDesignDocGenerator
             ("Assets/Scripts/UI/CraftingUI.cs",             "D&D合成UI",           "ドラッグ＆ドロップ合成 + レシピ照合 + 自動装備"),
             ("Assets/Scripts/UI/DraggableCard.cs",          "漢字カード",           "手札からドラッグ可能な漢字UI要素"),
             ("Assets/Scripts/UI/CraftSlot.cs",              "合成スロット",         "ドロップ受取り + 合成チェック呼出し"),
-            ("Assets/Scripts/Weapon/WeaponController.cs",   "装備＆武器攻撃",       "1つ装備 + 剣:前1マス / 銃:直線 / 爆:周囲8マス"),
+            ("Assets/Scripts/Weapon/WeaponController.cs",   "装備＆武器攻撃",       "剣/銃/爆攻撃 + CFXRエフェクト"),
             ("Assets/Scripts/UI/GameHUD.cs",                "HUD",                  "HP / 装備 / ターン / レシピ / メッセージ"),
             ("Assets/Scripts/Data/ItemData.cs",             "漢字データ定義",       "ItemData + displayCharacter"),
             ("Assets/Scripts/Data/ItemDatabase.cs",         "漢字 DB",              "漢字パーツ + 武器 + レシピ"),

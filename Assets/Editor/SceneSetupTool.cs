@@ -340,51 +340,98 @@ public class SceneSetupTool : Editor
 
         // ターン表示
         GameObject turnTextObj = CreateTextUI(canvasObj, "TurnText", "ターン: 0",
-            new Vector2(20f, -20f), new Vector2(200f, 30f), TextAnchor.UpperLeft);
+            new Vector2(20f, -20f), new Vector2(400f, 60f), TextAnchor.UpperLeft);
         SetAnchors(turnTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
-        turnTextObj.GetComponent<Text>().fontSize = 20;
+        SetTextOverflow(turnTextObj);
+        turnTextObj.GetComponent<Text>().fontSize = 40;
         turnTextObj.GetComponent<Text>().color = new Color(0.8f, 1f, 0.5f);
 
         // HP表示
         GameObject hpTextObj = CreateTextUI(canvasObj, "HPText", "HP: 3/3",
-            new Vector2(20f, -55f), new Vector2(200f, 30f), TextAnchor.UpperLeft);
+            new Vector2(20f, -85f), new Vector2(400f, 60f), TextAnchor.UpperLeft);
         SetAnchors(hpTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
-        hpTextObj.GetComponent<Text>().fontSize = 20;
+        SetTextOverflow(hpTextObj);
+        hpTextObj.GetComponent<Text>().fontSize = 40;
         hpTextObj.GetComponent<Text>().color = Color.white;
 
         // 装備表示
         GameObject weaponTextObj = CreateTextUI(canvasObj, "WeaponText", "装備: なし",
-            new Vector2(20f, -90f), new Vector2(200f, 30f), TextAnchor.UpperLeft);
+            new Vector2(20f, -150f), new Vector2(400f, 60f), TextAnchor.UpperLeft);
         SetAnchors(weaponTextObj, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
-        weaponTextObj.GetComponent<Text>().fontSize = 18;
+        SetTextOverflow(weaponTextObj);
+        weaponTextObj.GetComponent<Text>().fontSize = 36;
         weaponTextObj.GetComponent<Text>().color = new Color(1f, 0.9f, 0.3f);
 
-        // メッセージ
+        // メッセージ（中央上）
         GameObject msgTextObj = CreateTextUI(canvasObj, "MessageText", "",
-            new Vector2(0f, -30f), new Vector2(600f, 36f), TextAnchor.MiddleCenter);
+            new Vector2(0f, -30f), new Vector2(800f, 60f), TextAnchor.MiddleCenter);
         SetAnchors(msgTextObj, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-        msgTextObj.GetComponent<Text>().fontSize = 18;
+        SetTextOverflow(msgTextObj);
+        msgTextObj.GetComponent<Text>().fontSize = 36;
         msgTextObj.GetComponent<Text>().color = Color.yellow;
 
-        // 操作説明（右下）
-        GameObject ctrlTextObj = CreateTextUI(canvasObj, "ControlsText",
-            "WASD移動 / Space攻撃 / ドラッグで合成",
-            new Vector2(-20f, 20f), new Vector2(320f, 30f), TextAnchor.LowerLeft);
-        SetAnchors(ctrlTextObj, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
-        ctrlTextObj.GetComponent<Text>().fontSize = 14;
-        ctrlTextObj.GetComponent<Text>().color = new Color(0.7f, 0.7f, 0.7f);
+        // ============ 操作説明（右上、パネル付き） ============
+        GameObject ctrlPanel = new GameObject("ControlsPanel");
+        ctrlPanel.transform.SetParent(canvasObj.transform, false);
+        RectTransform cpRt = ctrlPanel.AddComponent<RectTransform>();
+        cpRt.anchorMin = new Vector2(1f, 1f);
+        cpRt.anchorMax = new Vector2(1f, 1f);
+        cpRt.pivot = new Vector2(1f, 1f);
+        cpRt.anchoredPosition = new Vector2(-15f, -15f);
+        cpRt.sizeDelta = new Vector2(340f, 90f);
 
-        // ============ 合成エリア（右上） ============
+        Image cpBg = ctrlPanel.AddComponent<Image>();
+        cpBg.color = new Color(0.05f, 0.05f, 0.1f, 0.75f);
+
+        // 操作テキスト
+        GameObject ctrlTextObj = new GameObject("ControlsText");
+        ctrlTextObj.transform.SetParent(ctrlPanel.transform, false);
+        RectTransform ctRt = ctrlTextObj.AddComponent<RectTransform>();
+        ctRt.anchorMin = Vector2.zero;
+        ctRt.anchorMax = Vector2.one;
+        ctRt.offsetMin = new Vector2(10f, 5f);
+        ctRt.offsetMax = new Vector2(-10f, -5f);
+
+        Text ctText = ctrlTextObj.AddComponent<Text>();
+        ctText.text = "WASD : 移動\nSpace : 攻撃\nドラッグ : 合成";
+        ctText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        ctText.fontSize = 22;
+        ctText.color = new Color(0.8f, 0.8f, 0.8f);
+        ctText.alignment = TextAnchor.UpperLeft;
+        ctText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        ctText.verticalOverflow = VerticalWrapMode.Overflow;
+
+        // ============ 手札エリア（下部） ============
+        GameObject handAreaObj = new GameObject("HandArea");
+        handAreaObj.transform.SetParent(canvasObj.transform, false);
+
+        RectTransform handRt = handAreaObj.AddComponent<RectTransform>();
+        handRt.anchorMin = new Vector2(0f, 0f);
+        handRt.anchorMax = new Vector2(0.65f, 0f);
+        handRt.pivot = new Vector2(0f, 0f);
+        handRt.anchoredPosition = new Vector2(10f, 10f);
+        handRt.sizeDelta = new Vector2(0f, 120f);
+
+        Image handBg = handAreaObj.AddComponent<Image>();
+        handBg.color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
+
+        HorizontalLayoutGroup handLayout = handAreaObj.AddComponent<HorizontalLayoutGroup>();
+        handLayout.spacing = 8f;
+        handLayout.padding = new RectOffset(10, 10, 10, 10);
+        handLayout.childAlignment = TextAnchor.MiddleLeft;
+        handLayout.childForceExpandWidth = false;
+        handLayout.childForceExpandHeight = false;
+
+        // ============ 合成エリア（右下、手札の右隣） ============
         GameObject craftArea = new GameObject("CraftArea");
         craftArea.transform.SetParent(canvasObj.transform, false);
         RectTransform craftRt = craftArea.AddComponent<RectTransform>();
-        craftRt.anchorMin = new Vector2(1f, 1f);
-        craftRt.anchorMax = new Vector2(1f, 1f);
-        craftRt.pivot = new Vector2(1f, 1f);
-        craftRt.anchoredPosition = new Vector2(-20f, -20f);
-        craftRt.sizeDelta = new Vector2(350f, 100f);
+        craftRt.anchorMin = new Vector2(1f, 0f);
+        craftRt.anchorMax = new Vector2(1f, 0f);
+        craftRt.pivot = new Vector2(1f, 0f);
+        craftRt.anchoredPosition = new Vector2(-10f, 10f);
+        craftRt.sizeDelta = new Vector2(420f, 120f);
 
-        // 合成エリア背景
         Image craftBg = craftArea.AddComponent<Image>();
         craftBg.color = new Color(0.08f, 0.08f, 0.12f, 0.85f);
 
@@ -396,13 +443,14 @@ public class SceneSetupTool : Editor
         clRt.anchorMax = new Vector2(1f, 1f);
         clRt.pivot = new Vector2(0.5f, 1f);
         clRt.anchoredPosition = new Vector2(0f, 0f);
-        clRt.sizeDelta = new Vector2(0f, 20f);
+        clRt.sizeDelta = new Vector2(0f, 25f);
         Text clText = craftLabel.AddComponent<Text>();
         clText.text = "― 合成 ―";
         clText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        clText.fontSize = 14;
+        clText.fontSize = 22;
         clText.color = new Color(0.7f, 0.7f, 0.7f);
         clText.alignment = TextAnchor.MiddleCenter;
+        clText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
         // スロットコンテナ
         GameObject slotContainer = new GameObject("SlotContainer");
@@ -419,51 +467,24 @@ public class SceneSetupTool : Editor
         slotLayout.childForceExpandWidth = true;
         slotLayout.childForceExpandHeight = true;
 
-        // 素材枠1
         CraftSlot craftSlot1 = CreateCraftSlotUI(slotContainer, "Slot1", "素材1");
-        // ＋ ラベル
         CreateSlotLabel(slotContainer, "+Label", "＋");
-        // 素材枠2
         CraftSlot craftSlot2 = CreateCraftSlotUI(slotContainer, "Slot2", "素材2");
-        // ＝ ラベル
         CreateSlotLabel(slotContainer, "=Label", "＝");
-        // 結果枠
         GameObject resultSlot = CreateResultSlotUI(slotContainer, "ResultSlot");
         Text resultText = resultSlot.GetComponentInChildren<Text>();
 
-        // ============ 手札エリア（下部） ============
-        GameObject handAreaObj = new GameObject("HandArea");
-        handAreaObj.transform.SetParent(canvasObj.transform, false);
-
-        RectTransform handRt = handAreaObj.AddComponent<RectTransform>();
-        handRt.anchorMin = new Vector2(0f, 0f);
-        handRt.anchorMax = new Vector2(0.7f, 0f);
-        handRt.pivot = new Vector2(0f, 0f);
-        handRt.anchoredPosition = new Vector2(10f, 10f);
-        handRt.sizeDelta = new Vector2(0f, 110f);
-
-        // 手札背景
-        Image handBg = handAreaObj.AddComponent<Image>();
-        handBg.color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
-
-        // HorizontalLayoutGroup
-        HorizontalLayoutGroup handLayout = handAreaObj.AddComponent<HorizontalLayoutGroup>();
-        handLayout.spacing = 8f;
-        handLayout.padding = new RectOffset(10, 10, 10, 10);
-        handLayout.childAlignment = TextAnchor.MiddleLeft;
-        handLayout.childForceExpandWidth = false;
-        handLayout.childForceExpandHeight = false;
-
-        // レシピ表示（手札エリア右　→　右下）
+        // レシピ表示（合成エリア上）
         GameObject recipeTextObj = CreateTextUI(canvasObj, "RecipeText", "",
-            new Vector2(-20f, 120f), new Vector2(300f, 100f), TextAnchor.LowerLeft);
+            new Vector2(-10f, 140f), new Vector2(420f, 100f), TextAnchor.LowerRight);
         SetAnchors(recipeTextObj, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
-        recipeTextObj.GetComponent<Text>().fontSize = 13;
+        SetTextOverflow(recipeTextObj);
+        recipeTextObj.GetComponent<Text>().fontSize = 22;
 
-        // インベントリテキスト（非表示だがGameHUDが参照する）
+        // インベントリテキスト（非表示、GameHUD参照用）
         GameObject invTextObj = CreateTextUI(canvasObj, "InventoryText", "",
             new Vector2(0f, 0f), new Vector2(1f, 1f), TextAnchor.UpperLeft);
-        invTextObj.SetActive(false); // 非表示（カードUIが代替）
+        invTextObj.SetActive(false);
 
         // ============ CraftingUI コンポーネント ============
         CraftingUI craftingUI = canvasObj.AddComponent<CraftingUI>();
@@ -575,6 +596,16 @@ public class SceneSetupTool : Editor
     {
         RectTransform rt = obj.GetComponent<RectTransform>();
         rt.anchorMin = min; rt.anchorMax = max; rt.pivot = pivot;
+    }
+
+    private static void SetTextOverflow(GameObject obj)
+    {
+        Text text = obj.GetComponent<Text>();
+        if (text != null)
+        {
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+        }
     }
 
     private static GameObject CreateTextUI(GameObject parent, string name, string content,
